@@ -48,6 +48,23 @@ export interface Task {
   relevanceScore?: number; // For personal view mode
   aiSuggestions?: AISuggestion[];
   developmentStatus?: DevelopmentStatus;
+  // Compatibility fields for current implementation (TODO: migrate to arrays)
+  assignee?: { name: string; initials: string; id: string; avatar?: string };
+  reviewRequested?: boolean;
+  mentions?: boolean;
+  taskId?: string;
+  epic?: string;
+  branch?: string;
+  pullRequest?: { status: string; number: number };
+  commits?: {
+    hash: string;
+    message: string;
+    author: string;
+    timestamp: string;
+  }[];
+  unreadComments?: number;
+  lastActivity?: string;
+  completedHours?: number;
 }
 
 export interface Label {
@@ -67,6 +84,10 @@ export interface Column {
   taskCount: number;
   isBottleneck?: boolean;
   averageTimeInColumn?: number; // in hours
+  // Compatibility fields for current implementation
+  hasBottleneck?: boolean;
+  avgTimeInColumn?: string;
+  oldestTask?: string;
 }
 
 export interface AISuggestion {
@@ -84,53 +105,53 @@ export interface AISuggestion {
 
 // Enums
 export enum UserRole {
-  ADMIN = 'admin',
-  USER = 'user',
+  ADMIN = "admin",
+  USER = "user",
 }
 
 export enum ProjectRole {
-  OWNER = 'owner',
-  ADMIN = 'admin',
-  MEMBER = 'member',
-  VIEWER = 'viewer',
+  OWNER = "owner",
+  ADMIN = "admin",
+  MEMBER = "member",
+  VIEWER = "viewer",
 }
 
 export enum TaskStatus {
-  TODO = 'todo',
-  IN_PROGRESS = 'in-progress',
-  REVIEW = 'review',
-  DONE = 'done',
+  TODO = "todo",
+  IN_PROGRESS = "in-progress",
+  REVIEW = "review",
+  DONE = "done",
 }
 
 export enum TaskPriority {
-  LOW = 'low',
-  MEDIUM = 'medium',
-  HIGH = 'high',
-  URGENT = 'urgent',
+  LOW = "low",
+  MEDIUM = "medium",
+  HIGH = "high",
+  URGENT = "urgent",
 }
 
 export enum AISuggestionType {
-  BRANCH = 'branch',
-  PULL_REQUEST = 'pull-request',
-  ASSIGN = 'assign',
-  PRIORITY = 'priority',
-  DEPENDENCY = 'dependency',
-  ESTIMATION = 'estimation',
+  BRANCH = "branch",
+  PULL_REQUEST = "pull-request",
+  ASSIGN = "assign",
+  PRIORITY = "priority",
+  DEPENDENCY = "dependency",
+  ESTIMATION = "estimation",
 }
 
 export enum ViewMode {
-  TEAM_SPACE = 'team-space',
-  MY_VIEW = 'my-view',
+  TEAM_SPACE = "team-space",
+  MY_VIEW = "my-view",
 }
 
 export enum DevelopmentStatus {
-  NOT_STARTED = 'not-started',
-  BRANCH_CREATED = 'branch-created',
-  IN_DEVELOPMENT = 'in-development',
-  PR_OPEN = 'pr-open',
-  PR_REVIEW = 'pr-review',
-  READY_TO_MERGE = 'ready-to-merge',
-  MERGED = 'merged',
+  NOT_STARTED = "not-started",
+  BRANCH_CREATED = "branch-created",
+  IN_DEVELOPMENT = "in-development",
+  PR_OPEN = "pr-open",
+  PR_REVIEW = "pr-review",
+  READY_TO_MERGE = "ready-to-merge",
+  MERGED = "merged",
 }
 
 // Component Props Types
@@ -145,7 +166,11 @@ export interface TaskCardProps {
 
 export interface KanbanColumnProps {
   column: Column;
-  onTaskDrop?: (taskId: string, newStatus: TaskStatus, newPosition: number) => void;
+  onTaskDrop?: (
+    taskId: string,
+    newStatus: TaskStatus,
+    newPosition: number,
+  ) => void;
   onTaskCreate?: (status: TaskStatus) => void;
 }
 
@@ -169,7 +194,7 @@ export interface AppState {
   currentUser: User | null;
   viewMode: ViewMode;
   filters: FilterState;
-  theme: 'light' | 'dark' | 'system';
+  theme: "light" | "dark" | "system";
   isLoading: boolean;
   error: string | null;
 }
@@ -199,7 +224,7 @@ export interface AppContextType {
     setCurrentUser: (user: User | null) => void;
     setViewMode: (mode: ViewMode) => void;
     setFilters: (filters: Partial<FilterState>) => void;
-    setTheme: (theme: 'light' | 'dark' | 'system') => void;
+    setTheme: (theme: "light" | "dark" | "system") => void;
     setLoading: (loading: boolean) => void;
     setError: (error: string | null) => void;
   };
@@ -210,8 +235,12 @@ export interface BoardContextType {
   actions: {
     setColumns: (columns: Column[]) => void;
     setTasks: (tasks: Task[]) => void;
-    moveTask: (taskId: string, newStatus: TaskStatus, newPosition: number) => void;
-    createTask: (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => void;
+    moveTask: (
+      taskId: string,
+      newStatus: TaskStatus,
+      newPosition: number,
+    ) => void;
+    createTask: (task: Omit<Task, "id" | "createdAt" | "updatedAt">) => void;
     updateTask: (taskId: string, updates: Partial<Task>) => void;
     deleteTask: (taskId: string) => void;
     setDraggedTask: (task: Task | null) => void;
@@ -268,7 +297,11 @@ export interface UseTaskManagementReturn {
   createTask: (task: CreateTaskForm) => Promise<Task>;
   updateTask: (taskId: string, updates: UpdateTaskForm) => Promise<Task>;
   deleteTask: (taskId: string) => Promise<void>;
-  moveTask: (taskId: string, newStatus: TaskStatus, newPosition: number) => Promise<void>;
+  moveTask: (
+    taskId: string,
+    newStatus: TaskStatus,
+    newPosition: number,
+  ) => Promise<void>;
   refreshTasks: () => Promise<void>;
 }
 
@@ -285,13 +318,13 @@ export interface UseResponsiveLayoutReturn {
   isMobile: boolean;
   isTablet: boolean;
   isDesktop: boolean;
-  screenSize: keyof typeof import('../constants').BREAKPOINTS;
-  orientation: 'portrait' | 'landscape';
+  screenSize: keyof typeof import("../constants").BREAKPOINTS;
+  orientation: "portrait" | "landscape";
 }
 
 // Utility Types
 export type SuggestionContext = {
-  type: 'drag' | 'status_change' | 'task_create' | 'task_update';
+  type: "drag" | "status_change" | "task_create" | "task_update";
   taskId?: string;
   fromStatus?: TaskStatus;
   toStatus?: TaskStatus;
@@ -329,18 +362,20 @@ export type ThemeColors = {
 
 // Type Guards
 export const isTask = (obj: any): obj is Task => {
-  return obj && typeof obj.id === 'string' && typeof obj.title === 'string';
+  return obj && typeof obj.id === "string" && typeof obj.title === "string";
 };
 
 export const isUser = (obj: any): obj is User => {
-  return obj && typeof obj.id === 'string' && typeof obj.email === 'string';
+  return obj && typeof obj.id === "string" && typeof obj.email === "string";
 };
 
 export const isValidTaskStatus = (status: string): status is TaskStatus => {
   return Object.values(TaskStatus).includes(status as TaskStatus);
 };
 
-export const isValidTaskPriority = (priority: string): priority is TaskPriority => {
+export const isValidTaskPriority = (
+  priority: string,
+): priority is TaskPriority => {
   return Object.values(TaskPriority).includes(priority as TaskPriority);
 };
 
@@ -348,7 +383,13 @@ export const isValidTaskPriority = (priority: string): priority is TaskPriority 
 export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
 // Type for component variants
-export type ComponentVariant = 'default' | 'primary' | 'secondary' | 'destructive' | 'outline' | 'ghost';
+export type ComponentVariant =
+  | "default"
+  | "primary"
+  | "secondary"
+  | "destructive"
+  | "outline"
+  | "ghost";
 
 // Type for component sizes
-export type ComponentSize = 'sm' | 'md' | 'lg' | 'xl';
+export type ComponentSize = "sm" | "md" | "lg" | "xl";
