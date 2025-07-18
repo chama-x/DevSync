@@ -8,6 +8,16 @@ import { TaskDetailView } from "@/components/detail/TaskDetailView"
 import { ProjectHeader } from "@/components/header/ProjectHeader"
 import { mockTasks, createColumns } from "@/data/mockData"
 import type { Task, ViewType } from "@/types"
+import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog"
 
 const currentUserId = "user-1"
 const currentTime = new Date().getHours()
@@ -283,6 +293,8 @@ export default function TeamSpaceInterface() {
     task: Task
   } | null>(null)
   const [focusedTask, setFocusedTask] = useState<Task | null>(null)
+  const [addColumnOpen, setAddColumnOpen] = useState(false)
+  const [newColumnName, setNewColumnName] = useState("")
 
   const columns = createColumns(mockTasks)
 
@@ -335,7 +347,7 @@ export default function TeamSpaceInterface() {
 
         {/* Enhanced Main Board */}
         <main className="p-8">
-          <div className="flex gap-8 overflow-x-auto pb-8">
+          <div className="flex gap-8 overflow-x-auto pb-8 items-start">
             {columns.map((column) => (
               <KanbanColumn
                 key={column.id}
@@ -346,6 +358,45 @@ export default function TeamSpaceInterface() {
                 onTaskClick={handleTaskClick}
               />
             ))}
+            {/* Add Column Button */}
+            <div className="flex flex-col items-center justify-start min-w-[20rem]">
+              <Dialog open={addColumnOpen} onOpenChange={setAddColumnOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="h-32 w-full mt-2 flex flex-col items-center justify-center border-dashed border-2 border-gray-300 text-gray-500 hover:border-primary/60 hover:text-primary">
+                    + Add Column
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Add New Column</DialogTitle>
+                  </DialogHeader>
+                  <form
+                    onSubmit={e => {
+                      e.preventDefault()
+                      // Stub: handle add column logic here
+                      setAddColumnOpen(false)
+                      setNewColumnName("")
+                    }}
+                  >
+                    <input
+                      type="text"
+                      className="w-full border rounded-md px-3 py-2 mb-4"
+                      placeholder="Column name"
+                      value={newColumnName}
+                      onChange={e => setNewColumnName(e.target.value)}
+                      required
+                      autoFocus
+                    />
+                    <DialogFooter>
+                      <DialogClose asChild>
+                        <Button type="button" variant="ghost">Cancel</Button>
+                      </DialogClose>
+                      <Button type="submit" disabled={!newColumnName.trim()}>Add Column</Button>
+                    </DialogFooter>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
         </main>
       </motion.div>
