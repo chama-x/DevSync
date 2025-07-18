@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Badge } from "@/components/ui/badge"
 import { TaskCard } from "@/components/task/TaskCard"
@@ -22,22 +22,31 @@ export const KanbanColumn = ({
   onTaskDragEnd,
   onTaskClick,
 }: KanbanColumnProps) => {
-  const [isHovered, setIsHovered] = useState(false)
-
-  const relevantTasks = isPersonalView
-    ? column.tasks.filter((task) => task.assignee?.id === CURRENT_USER_ID || task.reviewRequested || task.mentions)
-    : column.tasks
-
-  const visibleTaskCount = isPersonalView ? relevantTasks.length : column.tasks.length
+  // Memoize filtered tasks to prevent unnecessary recalculations
+  const { visibleTasks, taskCount } = useMemo(() => {
+    if (isPersonalView) {
+      // In My View: Show only tasks assigned to current user, tasks mentioning them, or tasks requesting their review
+      const filtered = column.tasks.filter(
+        (task) => task.assignee?.id === CURRENT_USER_ID || task.reviewRequested || task.mentions,
+      )
+      return { visibleTasks: filtered, taskCount: filtered.length }
+    }
+    // In Team Space: Show all tasks
+    return { visibleTasks: column.tasks, taskCount: column.tasks.length }
+  }, [column.tasks, isPersonalView])
 
   return (
     <div className="flex-shrink-0 w-80">
       <motion.div
         className="bg-gray-50/80 backdrop-blur-sm rounded-3xl p-6 h-full"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        whileHover={{ backgroundColor: "rgba(249, 250, 251, 0.9)" }}
-        transition={{ duration: 0.2 }}
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{
+          duration: 0.5,
+          ease: [0.16, 1, 0.3, 1],
+          delay: 0.1,
+          type: "tween",
+        }}
       >
         {/* Enhanced Column Header */}
         <div className="flex items-center justify-between mb-6">
@@ -75,55 +84,58 @@ export const KanbanColumn = ({
 
           <div className="flex items-center gap-2">
             <Badge variant="secondary" className="text-sm font-semibold px-3 py-1">
-              {visibleTaskCount}
+              {taskCount}
             </Badge>
           </div>
         </div>
 
-        {/* Progressive Column Stats */}
-        <AnimatePresence>
-          {isHovered && (column.avgTimeInColumn || column.oldestTask) && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              className="mb-4 p-3 bg-white/60 rounded-xl text-xs text-gray-600 space-y-1"
-            >
-              {column.avgTimeInColumn && (
-                <div className="flex justify-between">
-                  <span>Avg. time:</span>
-                  <span className="font-medium">{column.avgTimeInColumn}</span>
-                </div>
-              )}
-              {column.oldestTask && (
-                <div className="flex justify-between">
-                  <span>Oldest task:</span>
-                  <span className="font-medium">{column.oldestTask}</span>
-                </div>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Task List */}
+        {/* Task List - Optimized for smooth transitions */}
         <div className="space-y-4 min-h-[300px]">
           <AnimatePresence mode="popLayout">
-            {column.tasks.map((task) => {
-              const isRelevant =
-                !isPersonalView || task.assignee?.id === CURRENT_USER_ID || task.reviewRequested || task.mentions
-
-              return (
+            {visibleTasks.map((task, index) => (
+              <motion.div
+                key={task.id}
+                layout
+                initial={{ opacity: 0, y: 12, scale: 0.98 }}
+                animate={{
+                  opacity: 1,
+                  y: 0,
+                  scale: 1,
+                  transition: {
+                    duration: 0.4,
+                    ease: [0.16, 1, 0.3, 1],
+                    delay: index * 0.02,
+                    type: "tween",
+                  },
+                }}
+                exit={{
+                  opacity: 0,
+                  y: -12,
+                  scale: 0.98,
+                  transition: {
+                    duration: 0.25,
+                    ease: [0.16, 1, 0.3, 1],
+                    type: "tween",
+                  },
+                }}
+                transition={{
+                  layout: {
+                    duration: 0.3,
+                    ease: [0.16, 1, 0.3, 1],
+                    type: "tween",
+                  },
+                }}
+              >
                 <TaskCard
-                  key={task.id}
                   task={task}
                   isPersonalView={isPersonalView}
                   onDragStart={onTaskDragStart}
                   onDragEnd={onTaskDragEnd}
                   onClick={onTaskClick}
-                  isRelevant={isRelevant}
+                  isRelevant={true} // All visible tasks are relevant
                 />
-              )
-            })}
+              </motion.div>
+            ))}
           </AnimatePresence>
         </div>
       </motion.div>

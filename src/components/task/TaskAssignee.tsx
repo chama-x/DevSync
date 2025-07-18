@@ -16,7 +16,17 @@ export const TaskAssignee = ({ task }: TaskAssigneeProps) => {
 
   if (task.assignee) {
     return (
-      <motion.div whileHover={{ scale: 1.05 }} className="relative">
+      <motion.div
+        whileHover={{
+          scale: 1.02,
+          transition: {
+            duration: 0.3,
+            ease: [0.16, 1, 0.3, 1],
+            type: "tween",
+          },
+        }}
+        className="relative"
+      >
         <Avatar className="h-9 w-9 ring-2 ring-white shadow-sm">
           <AvatarImage src={task.assignee.avatar || "/placeholder.svg"} />
           <AvatarFallback className="text-sm font-medium bg-gradient-to-br from-blue-50 to-indigo-50 text-gray-700">
@@ -37,7 +47,14 @@ export const TaskAssignee = ({ task }: TaskAssigneeProps) => {
       onMouseLeave={() => setShowAISuggestion(false)}
     >
       <motion.div
-        whileHover={{ scale: 1.05 }}
+        whileHover={{
+          scale: 1.02,
+          transition: {
+            duration: 0.3,
+            ease: [0.16, 1, 0.3, 1],
+            type: "tween",
+          },
+        }}
         className="h-9 w-9 rounded-full border-2 border-dashed border-gray-300 bg-gray-50 flex items-center justify-center"
       >
         <div className="w-2 h-2 bg-gray-300 rounded-full" />

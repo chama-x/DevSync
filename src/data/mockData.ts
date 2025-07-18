@@ -7,7 +7,7 @@ export const mockTasks: Task[] = [
     taskId: "AUTH-123",
     priority: "high",
     status: "in-progress",
-    assignee: { name: "Sarah Chen", initials: "SC", id: "user-1" },
+    assignee: { name: "Sarah Chen", initials: "SC", id: "user-1" }, // Current user
     branch: "feature/auth-123-oauth-integration",
     pullRequest: { status: "draft", number: 234 },
     commits: [
@@ -32,7 +32,7 @@ export const mockTasks: Task[] = [
     assignee: { name: "Alex Rivera", initials: "AR", id: "user-2" },
     branch: "fix/memory-leak-processing",
     pullRequest: { status: "checks-running", number: 235 },
-    reviewRequested: true,
+    reviewRequested: true, // Current user is requested to review
     epic: "Performance",
     labels: ["backend", "performance"],
     dueDate: "Dec 12",
@@ -47,7 +47,7 @@ export const mockTasks: Task[] = [
     status: "in-review",
     assignee: { name: "Maria Garcia", initials: "MG", id: "user-3" },
     pullRequest: { status: "open", number: 236 },
-    reviewRequested: true,
+    reviewRequested: true, // Current user is requested to review
     epic: "Documentation",
     labels: ["docs"],
     lastActivity: "6 hours ago",
@@ -60,7 +60,7 @@ export const mockTasks: Task[] = [
     taskId: "DB-101",
     priority: "low",
     status: "todo",
-    mentions: true,
+    mentions: true, // Current user is mentioned
     epic: "Database",
     labels: ["backend", "migration"],
     dueDate: "Dec 20",
@@ -98,6 +98,33 @@ export const mockTasks: Task[] = [
     labels: ["frontend", "design"],
     estimatedHours: 20,
     completedHours: 20,
+  },
+  // Additional tasks assigned to current user
+  {
+    id: "8",
+    title: "Code review for authentication module",
+    taskId: "REV-501",
+    priority: "high",
+    status: "todo",
+    assignee: { name: "Sarah Chen", initials: "SC", id: "user-1" }, // Current user
+    epic: "Authentication",
+    labels: ["review", "security"],
+    dueDate: "Dec 13",
+    estimatedHours: 4,
+    completedHours: 0,
+  },
+  {
+    id: "9",
+    title: "Security audit preparation",
+    taskId: "SEC-602",
+    priority: "critical",
+    status: "in-progress",
+    assignee: { name: "Sarah Chen", initials: "SC", id: "user-1" }, // Current user
+    epic: "Security",
+    labels: ["security", "audit"],
+    dueDate: "Dec 14",
+    estimatedHours: 8,
+    completedHours: 3,
   },
 ]
 

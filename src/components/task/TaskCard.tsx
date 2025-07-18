@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Eye } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
@@ -28,50 +28,11 @@ export const TaskCard = ({
   onClick,
   isRelevant = true,
 }: TaskCardProps) => {
-  const [isHovered, setIsHovered] = useState(false)
   const contextualLabel = useContextualLabel(isPersonalView)
 
-  return (
-    <motion.div
-      layout
-      initial={{ opacity: 1, scale: 1 }}
-      animate={{
-        opacity: isRelevant ? 1 : 0.15,
-        scale: isRelevant ? 1 : 0.96,
-      }}
-      transition={{
-        duration: 0.4,
-        ease: [0.4, 0, 0.2, 1],
-        layout: { duration: 0.3 },
-      }}
-      draggable={isRelevant}
-      onDragStart={() => onDragStart(task)}
-      onDragEnd={onDragEnd}
-      onClick={() => onClick(task)}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      className={`
-        group relative bg-white rounded-2xl cursor-pointer transition-all duration-300
-        ${isRelevant ? "hover:shadow-lg hover:shadow-black/5" : "pointer-events-none"}
-        ${isHovered ? "ring-1 ring-black/5" : "border border-gray-100"}
-      `}
-      whileHover={isRelevant ? { y: -2 } : {}}
-      whileTap={isRelevant ? { scale: 0.98 } : {}}
-    >
-      {/* Contextual Priority Label */}
-      <AnimatePresence>
-        {contextualLabel && isPersonalView && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="absolute -top-2 left-4 px-2 py-1 bg-black text-white text-xs rounded-full font-medium"
-          >
-            {contextualLabel}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
+  // Memoize the card content to prevent unnecessary re-renders
+  const cardContent = useMemo(
+    () => (
       <div className="p-5">
         {/* Primary Information Layer */}
         <div className="flex items-start justify-between mb-4">
@@ -88,43 +49,112 @@ export const TaskCard = ({
           <TaskAssignee task={task} />
         </div>
 
-        {/* Progressive Disclosure Layer 2 - Contextual Information */}
-        <AnimatePresence>
-          {(isHovered || isPersonalView) && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
-              className="space-y-3"
-            >
-              <TaskDevelopmentStatus task={task} />
-              <TaskActivityIndicators task={task} />
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* Progressive Disclosure Layer 2 - Always show in Personal View */}
+        {isPersonalView && (
+          <div className="space-y-3 mb-3">
+            <TaskDevelopmentStatus task={task} />
+            <TaskActivityIndicators task={task} />
+          </div>
+        )}
 
         {/* Review Request Badge */}
         {task.reviewRequested && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-4 pt-3 border-t border-gray-100"
-          >
+          <div className="mt-4 pt-3 border-t border-gray-100">
             <Badge className="bg-purple-50 text-purple-700 border-purple-200 font-medium">
               <Eye className="h-3 w-3 mr-1" />
               Review Requested
             </Badge>
-          </motion.div>
+          </div>
         )}
       </div>
+    ),
+    [task, isPersonalView],
+  )
 
-      {/* Subtle interaction indicator */}
-      <motion.div
-        className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-500/5 to-purple-500/5 opacity-0 pointer-events-none"
-        animate={{ opacity: isHovered ? 1 : 0 }}
-        transition={{ duration: 0.2 }}
-      />
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 1, scale: 1 }}
+      animate={{
+        opacity: isRelevant ? 1 : 0.15,
+        scale: isRelevant ? 1 : 0.98,
+      }}
+      transition={{
+        duration: 0.4,
+        ease: [0.16, 1, 0.3, 1],
+        layout: {
+          duration: 0.3,
+          ease: [0.16, 1, 0.3, 1],
+          type: "tween",
+        },
+      }}
+      draggable={isRelevant}
+      onDragStart={() => onDragStart(task)}
+      onDragEnd={onDragEnd}
+      onClick={() => onClick(task)}
+      className={`
+        group relative bg-white rounded-2xl cursor-pointer border border-gray-100
+        ${isRelevant ? "" : "pointer-events-none"}
+      `}
+      whileHover={
+        isRelevant
+          ? {
+              y: -1,
+              transition: {
+                duration: 0.3,
+                ease: [0.16, 1, 0.3, 1],
+                type: "tween",
+              },
+            }
+          : {}
+      }
+      whileTap={
+        isRelevant
+          ? {
+              scale: 0.995,
+              y: 0,
+              transition: {
+                duration: 0.15,
+                ease: [0.16, 1, 0.3, 1],
+                type: "tween",
+              },
+            }
+          : {}
+      }
+    >
+      {/* Contextual Priority Label */}
+      <AnimatePresence>
+        {contextualLabel && isPersonalView && (
+          <motion.div
+            initial={{ opacity: 0, y: -8, scale: 0.95 }}
+            animate={{
+              opacity: 1,
+              y: 0,
+              scale: 1,
+              transition: {
+                duration: 0.4,
+                ease: [0.16, 1, 0.3, 1],
+                type: "tween",
+              },
+            }}
+            exit={{
+              opacity: 0,
+              y: -8,
+              scale: 0.95,
+              transition: {
+                duration: 0.25,
+                ease: [0.16, 1, 0.3, 1],
+                type: "tween",
+              },
+            }}
+            className="absolute -top-2 left-4 px-2 py-1 bg-black text-white text-xs rounded-full font-medium"
+          >
+            {contextualLabel}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {cardContent}
     </motion.div>
   )
 }
