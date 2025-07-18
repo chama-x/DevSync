@@ -1,0 +1,37 @@
+{
+  "version": 1.1,
+  "atDirectives": [
+    {
+      "name": "@theme",
+      "description": "Tailwind CSS v4 theme directive for defining design tokens"
+    },
+    {
+      "name": "@utility",
+      "description": "Tailwind CSS v4 utility directive for custom utilities"
+    },
+    {
+      "name": "@tailwind",
+      "description": "Tailwind CSS directive for importing base, components, utilities"
+    },
+    {
+      "name": "@apply",
+      "description": "Tailwind CSS directive for applying utility classes"
+    },
+    {
+      "name": "@layer",
+      "description": "Tailwind CSS directive for organizing styles into layers"
+    },
+    {
+      "name": "@responsive",
+      "description": "Tailwind CSS directive for responsive variants"
+    },
+    {
+      "name": "@screen",
+      "description": "Tailwind CSS directive for screen size variants"
+    },
+    {
+      "name": "@variants",
+      "description": "Tailwind CSS directive for generating variants"
+    }
+  ]
+}
